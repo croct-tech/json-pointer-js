@@ -1,4 +1,5 @@
-import {JsonPointer, JsonPointerLike, JsonPointerSegments, JsonStructure, JsonValue} from '../src';
+import {JsonStructure, JsonValue} from '@croct-tech/json';
+import {JsonPointer, JsonPointerLike, JsonPointerSegments} from '../src';
 
 describe('A JSON Pointer', () => {
     it.each(
