@@ -23,6 +23,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
+          registry-url: 'https://npm.pkg.github.com'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
 
       - name: Cache dependencies
         id: cache-dependencies
@@ -47,6 +50,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
+          registry-url: 'https://npm.pkg.github.com'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
 
       - name: Cache dependencies
         id: cache-dependencies
@@ -69,6 +75,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
+          registry-url: 'https://npm.pkg.github.com'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
 
       - name: Cache dependencies
         id: cache-dependencies
@@ -91,6 +100,9 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
+          registry-url: 'https://npm.pkg.github.com'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
 
       - name: Cache dependencies
         id: cache-dependencies
