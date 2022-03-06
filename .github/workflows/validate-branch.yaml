@@ -11,12 +11,16 @@ on:
       - synchronize
       - opened
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
-  security-checks:
+  check-vulnerabilities:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
 
@@ -33,14 +37,14 @@ jobs:
 
       - name: Check dependency vulnerabilities
         run: |-
-          npm i -g npm-audit-resolver
+          npm i -g npm-audit-resolver@3.0.0-7
           npx check-audit
 
-  validate:
+  validate-code:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
 
@@ -58,11 +62,11 @@ jobs:
       - name: Check compilation errors
         run: npm run validate
 
-  lint:
+  check-code-style:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
 
@@ -80,11 +84,11 @@ jobs:
       - name: Check coding standard violations
         run: npm run lint
 
-  test:
+  run-tests:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: 16
 
@@ -99,10 +103,10 @@ jobs:
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: npm ci
 
-      - uses: paambaati/codeclimate-action@v3
+      - uses: paambaati/codeclimate-action@v3.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: npm test
+          coverageCommand: npm run test
           coverageLocations:
             ./coverage/lcov.info:lcov
