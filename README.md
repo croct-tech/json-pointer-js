@@ -9,8 +9,8 @@
 </p>
 <p align="center">
     <img alt="Build" src="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml/badge.svg" />
-    <a href="https://codeclimate.com/repos/6219a343a6636301b6003865/test_coverage"><img src="https://api.codeclimate.com/v1/badges/a9ea56032f9524de01b1/test_coverage" /></a>
-    <a href="https://codeclimate.com/repos/6219a343a6636301b6003865/maintainability"><img src="https://api.codeclimate.com/v1/badges/a9ea56032f9524de01b1/maintainability" /></a>
+    <a href="https://codeclimate.com/repos/6224bc798bc258016500056f/test_coverage"><img src="https://api.codeclimate.com/v1/badges/692b087d6472a80bb509/test_coverage" /></a>
+    <a href="https://codeclimate.com/repos/6224bc798bc258016500056f/maintainability"><img src="https://api.codeclimate.com/v1/badges/692b087d6472a80bb509/maintainability" /></a>
     <br />
     <br />
     <a href="https://github.com/croct-tech/json-pointer-js/releases">📦Releases</a>
