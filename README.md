@@ -5,7 +5,7 @@
     <br />
     <strong>JSON Pointer</strong>
     <br />
-    A RFC 6901 compliant JSON pointer library to handle arbitrary structured data.
+    A [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) compliant JSON pointer library to handle arbitrary structured data.
 </p>
 <p align="center">
     <a href="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml"><img alt="Build" src="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml/badge.svg" /></a>
