@@ -31,7 +31,7 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@croct/json": "^0.1"
+    "@croct/json": "^1.0.0"
   },
   "devDependencies": {
     "@croct/eslint-plugin": "^0.1",
