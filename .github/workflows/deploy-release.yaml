@@ -52,4 +52,4 @@ jobs:
         if: ${{ !github.event.release.prerelease }}
         run: |-
           cd build
-          NODE_AUTH_TOKEN=${{ secret.GITHUB_TOKEN }} npm publish
+          NODE_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }} npm publish
