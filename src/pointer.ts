@@ -1,4 +1,4 @@
-import {JsonConvertible, JsonStructure, JsonValue} from '@croct-tech/json';
+import {JsonConvertible, JsonStructure, JsonValue} from '@croct/json';
 
 export type JsonPointerLike = JsonPointer | number | string | JsonPointerSegments;
 

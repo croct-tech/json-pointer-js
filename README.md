@@ -8,7 +8,7 @@
     A RFC 6901 compliant JSON pointer library to handle arbitrary structured data.
 </p>
 <p align="center">
-    <img alt="Build" src="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml/badge.svg" />
+    <a href="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml"><img alt="Build" src="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml/badge.svg" /></a>
     <a href="https://codeclimate.com/repos/6224bc798bc258016500056f/test_coverage"><img src="https://api.codeclimate.com/v1/badges/692b087d6472a80bb509/test_coverage" /></a>
     <a href="https://codeclimate.com/repos/6224bc798bc258016500056f/maintainability"><img src="https://api.codeclimate.com/v1/badges/692b087d6472a80bb509/maintainability" /></a>
     <br />

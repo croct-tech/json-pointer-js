@@ -1,4 +1,4 @@
-import {JsonStructure, JsonValue} from '@croct-tech/json';
+import {JsonStructure, JsonValue} from '@croct/json';
 import {JsonPointer, JsonPointerLike, JsonPointerSegments} from '../src';
 
 describe('A JSON Pointer', () => {
