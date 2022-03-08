@@ -22,21 +22,8 @@
 
 ## Introduction
 
-This library provides an [RFC 6901](https://tools.ietf.org/html/rfc6901) compliant JSON pointer implementation
-to handle and manipulate arbitrary JSON values with type-safety.
-
-## Installation
-
-We recommend using [NPM](https://www.npmjs.com) to install the package:
-
-```sh
-npm install @croct-tech/json-pointer
-```
-
-## Overview
-
-This library ships with a fast implementation of the JSON Pointer specification, as described in 
-[RFC 6901](https://tools.ietf.org/html/rfc6901).
+This library provides a fast, [RFC 6901](https://tools.ietf.org/html/rfc6901) compliant JSON pointer implementation
+to manipulate arbitrary JSON values with type-safety.
 
 These are the main highlight that distinguishes it from similar libraries:
 
@@ -45,6 +32,14 @@ These are the main highlight that distinguishes it from similar libraries:
 - Provide methods for reading and writing structures
 - Restricts operations such that no array becomes sparse
 - Ensures that a valid `JsonStructure` modified by a `JsonPointer` results in a still valid `JsonStructure`
+
+## Installation
+
+We recommend using [NPM](https://www.npmjs.com) to install the package:
+
+```sh
+npm install @croct-tech/json-pointer
+```
 
 ## Contributing
 
