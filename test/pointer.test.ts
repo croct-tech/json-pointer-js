@@ -15,6 +15,7 @@ describe('A JSON Pointer', () => {
             [['foo', 1], '/foo/1'],
             [['foo', '-'], '/foo/-'],
             [0, '/0'],
+            [['0'], '/0'],
             [Number.MAX_SAFE_INTEGER, `/${Number.MAX_SAFE_INTEGER}`],
             [JsonPointer.parse('/foo/bar'), '/foo/bar'],
         ],
@@ -736,13 +737,13 @@ describe('A JSON Pointer', () => {
     });
 
     it("should determine whether it's logically equal to another pointer", () => {
-        const foo = JsonPointer.parse('/foo/qux');
+        const pointer = JsonPointer.parse('/foo/qux');
 
-        expect(foo.equals({})).toBe(false);
-        expect(foo.equals(foo)).toBe(true);
+        expect(pointer.equals({})).toBe(false);
+        expect(pointer.equals(pointer)).toBe(true);
         expect(JsonPointer.parse('/foo/qux').equals(JsonPointer.parse('/foo/qux'))).toBe(true);
-        expect(foo.equals(JsonPointer.parse('/bar'))).toBe(false);
-        expect(foo.equals(JsonPointer.parse('/bar/baz'))).toBe(false);
+        expect(pointer.equals(JsonPointer.parse('/bar'))).toBe(false);
+        expect(pointer.equals(JsonPointer.parse('/bar/baz'))).toBe(false);
     });
 
     it('can be converted to string', () => {

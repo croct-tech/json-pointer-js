@@ -40,6 +40,11 @@ export class InvalidReferenceError extends JsonPointerError {
 }
 
 /**
+ * A key-value pair representing a JSON pointer segment and its value.
+ */
+export type Entry = [JsonPointerSegment | null, JsonValue];
+
+/**
  * An RFC 6901-compliant JSON pointer.
  *
  * @see https://tools.ietf.org/html/rfc6901
@@ -72,7 +77,7 @@ export class JsonPointer implements JsonConvertible {
      * - Pointers are returned as given
      * - Numbers are used as single segments
      * - Arrays are assumed to be unescaped segments
-     * - Strings are delegated to `Pointer.parse` and the result is returned
+     * - Strings are delegated to `JsonPointer.parse` and the result is returned
      *
      * @param path A pointer-like value.
      *
@@ -86,7 +91,7 @@ export class JsonPointer implements JsonConvertible {
         }
 
         if (Array.isArray(path)) {
-            return JsonPointer.fromSegments(path);
+            return JsonPointer.fromSegments(path.map(JsonPointer.normalizeSegment));
         }
 
         if (typeof path === 'number') {
@@ -99,7 +104,7 @@ export class JsonPointer implements JsonConvertible {
     /**
      * Creates a pointer from a list of unescaped segments.
      *
-     * Numeric segments must be finite non-negative integers.
+     * Numeric segments must be safe non-negative integers.
      *
      * @param {JsonPointerSegments} segments A list of unescaped segments.
      *
@@ -146,9 +151,9 @@ export class JsonPointer implements JsonConvertible {
     }
 
     /**
-     * Checks whether the reference points to an array element.
+     * Checks whether the pointer references an array element.
      *
-     * @returns {boolean} Whether the pointer is an array index.
+     * @returns {boolean} Whether the pointer references an array index.
      */
     public isIndex(): boolean {
         return typeof this.segments[this.segments.length - 1] === 'number';
@@ -161,7 +166,7 @@ export class JsonPointer implements JsonConvertible {
      *
      * @example
      * // returns 2
-     * Pointer.from('/foo/bar').depth()
+     * JsonPointer.from('/foo/bar').depth()
      *
      * @returns {number} The depth of the pointer.
      */
@@ -224,9 +229,9 @@ export class JsonPointer implements JsonConvertible {
      *
      * These are equivalent:
      *
-     * ```js
-     * Pointer.from(['foo', 'bar']).join(Pointer.from(['baz']))
-     * Pointer.from(['foo', 'bar', 'baz'])
+     * ```json
+     * JsonPointer.from(['foo', 'bar']).joinedWith(Pointer.from(['baz']))
+     * JsonPointer.from(['foo', 'bar', 'baz'])
      * ```
      *
      * @param {JsonPointer} other The pointer to append to this one.
@@ -246,7 +251,7 @@ export class JsonPointer implements JsonConvertible {
     /**
      * Returns the value at the referenced location.
      *
-     * @param {JsonStructure} structure The structure to get the value from.
+     * @param {JsonValue} value The value to read from.
      *
      * @returns {JsonValue} The value at the referenced location.
      *
@@ -254,56 +259,22 @@ export class JsonPointer implements JsonConvertible {
      * @throws {InvalidReferenceError} If a string segment references an array value.
      * @throws {InvalidReferenceError} If there is no value at any level of the pointer.
      */
-    public get(structure: JsonStructure): JsonValue {
-        let current: JsonValue = structure;
+    public get(value: JsonValue): JsonValue {
+        const iterator = this.traverse(value);
 
-        for (let i = 0; i < this.segments.length; i++) {
-            if (typeof current !== 'object' || current === null) {
-                throw new InvalidReferenceError(`Cannot read value at "${this.truncatedAt(i)}".`);
+        let result = iterator.next();
+
+        while (result.done === false) {
+            const next = iterator.next();
+
+            if (next.done !== false) {
+                break;
             }
 
-            const segment = this.segments[i];
-
-            if (Array.isArray(current)) {
-                if (segment === '-') {
-                    throw new InvalidReferenceError(
-                        `Index ${current.length} is out of bounds at "${this.truncatedAt(i)}".`,
-                    );
-                }
-
-                if (typeof segment !== 'number') {
-                    throw new InvalidReferenceError(
-                        `Expected an object at "${this.truncatedAt(i)}", got an array.`,
-                    );
-                }
-
-                if (segment >= current.length) {
-                    throw new InvalidReferenceError(
-                        `Index ${segment} is out of bounds at "${this.truncatedAt(i)}".`,
-                    );
-                }
-
-                current = current[segment];
-
-                continue;
-            }
-
-            if (typeof segment === 'number') {
-                throw new InvalidReferenceError(
-                    `Expected array at "${this.truncatedAt(i)}", got object.`,
-                );
-            }
-
-            if (!(segment in current)) {
-                throw new InvalidReferenceError(
-                    `Property "${segment}" does not exist at "${this.truncatedAt(i)}".`,
-                );
-            }
-
-            current = current[segment];
+            result = next;
         }
 
-        return current;
+        return result.value[1];
     }
 
     /**
@@ -439,6 +410,70 @@ export class JsonPointer implements JsonConvertible {
     }
 
     /**
+     * Returns an iterator over the stack of values that the pointer references.
+     *
+     * @param {JsonValue} root The value to traverse.
+     *
+     * @returns {Iterator<JsonPointer>} An iterator over the stack of values that the
+     * pointer references.
+     */
+    public* traverse(root: JsonValue): Iterator<Entry> {
+        let current: JsonValue = root;
+
+        yield [null, current];
+
+        for (let i = 0; i < this.segments.length; i++) {
+            if (typeof current !== 'object' || current === null) {
+                throw new InvalidReferenceError(`Cannot read value at "${this.truncatedAt(i)}".`);
+            }
+
+            const segment = this.segments[i];
+
+            if (Array.isArray(current)) {
+                if (segment === '-') {
+                    throw new InvalidReferenceError(
+                        `Index ${current.length} is out of bounds at "${this.truncatedAt(i)}".`,
+                    );
+                }
+
+                if (typeof segment !== 'number') {
+                    throw new InvalidReferenceError(
+                        `Expected an object at "${this.truncatedAt(i)}", got an array.`,
+                    );
+                }
+
+                if (segment >= current.length) {
+                    throw new InvalidReferenceError(
+                        `Index ${segment} is out of bounds at "${this.truncatedAt(i)}".`,
+                    );
+                }
+
+                current = current[segment];
+
+                yield [segment, current];
+
+                continue;
+            }
+
+            if (typeof segment === 'number') {
+                throw new InvalidReferenceError(
+                    `Expected array at "${this.truncatedAt(i)}", got object.`,
+                );
+            }
+
+            if (!(segment in current)) {
+                throw new InvalidReferenceError(
+                    `Property "${segment}" does not exist at "${this.truncatedAt(i)}".`,
+                );
+            }
+
+            current = current[segment];
+
+            yield [segment, current];
+        }
+    }
+
+    /**
      * Checks whether the pointer is logically equivalent to another pointer.
      *
      * @param {any} other The pointer to check for equality.
@@ -489,14 +524,24 @@ export class JsonPointer implements JsonConvertible {
         return `/${this.segments.map(JsonPointer.escapeSegment).join('/')}`;
     }
 
+    private static normalizeSegment(segment: string): JsonPointerSegment {
+        if (/^\d+$/.test(segment)) {
+            return Number.parseInt(segment, 10);
+        }
+
+        return segment;
+    }
+
     /**
      * Converts a segment to its normalized form.
      *
      * @param segment The escaped segment to convert into its normalized form.
      */
     private static unescapeSegment(segment: string): JsonPointerSegment {
-        if (/^\d+$/.test(segment)) {
-            return parseInt(segment, 10);
+        const normalizedSegment = JsonPointer.normalizeSegment(segment);
+
+        if (typeof normalizedSegment === 'number') {
+            return normalizedSegment;
         }
 
         /*
@@ -506,7 +551,7 @@ export class JsonPointer implements JsonConvertible {
          * which would be incorrect (the string '~01' correctly becomes '~1'
          * after transformation).
          */
-        return segment.replace(/~1/g, '/')
+        return normalizedSegment.replace(/~1/g, '/')
             .replace(/~0/g, '~');
     }
 
