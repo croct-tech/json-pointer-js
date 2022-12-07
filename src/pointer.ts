@@ -1,9 +1,18 @@
 import {JsonConvertible, JsonStructure, JsonValue} from '@croct/json';
 
+/**
+ * A value that can be converted to a JSON pointer.
+ */
 export type JsonPointerLike = JsonPointer | number | string | JsonPointerSegments;
 
+/**
+ * A JSON pointer segment.
+ */
 export type JsonPointerSegment = string | number;
 
+/**
+ * A list of JSON pointer segments.
+ */
 export type JsonPointerSegments = JsonPointerSegment[];
 
 /**
@@ -50,10 +59,21 @@ export type Entry = [JsonPointerSegment | null, JsonValue];
  * @see https://tools.ietf.org/html/rfc6901
  */
 export class JsonPointer implements JsonConvertible {
+    /**
+     * A singleton representing the root pointer.
+     */
     private static readonly ROOT_SINGLETON = new JsonPointer([]);
 
+    /**
+     * The list of segments that form the pointer.
+     */
     private readonly segments: JsonPointerSegments;
 
+    /**
+     * Initializes a new pointer from a list of segments.
+     *
+     * @param segments A list of segments.
+     */
     private constructor(segments: JsonPointerSegments) {
         this.segments = segments;
     }
@@ -416,6 +436,10 @@ export class JsonPointer implements JsonConvertible {
      *
      * @returns {Iterator<JsonPointer>} An iterator over the stack of values that the
      * pointer references.
+     *
+     * @throws {InvalidReferenceError} If a numeric segment references a non-array value.
+     * @throws {InvalidReferenceError} If a string segment references an array value.
+     * @throws {InvalidReferenceError} If there is no value at any level of the pointer.
      */
     public* traverse(root: JsonValue): Iterator<Entry> {
         let current: JsonValue = root;
@@ -524,6 +548,13 @@ export class JsonPointer implements JsonConvertible {
         return `/${this.segments.map(JsonPointer.escapeSegment).join('/')}`;
     }
 
+    /**
+     * Normalizes a pointer segments.
+     *
+     * @param segment The segment to normalize.
+     *
+     * @returns {string} The normalized segment.
+     */
     private static normalizeSegment(segment: string): JsonPointerSegment {
         if (/^\d+$/.test(segment)) {
             return Number.parseInt(segment, 10);

@@ -9,6 +9,9 @@ import {
     Entry,
 } from './pointer';
 
+/**
+ * A value that can be converted to a relative JSON pointer.
+ */
 export type JsonRelativePointerLike = JsonRelativePointer | number | string | JsonPointerSegments;
 
 /**
@@ -17,6 +20,9 @@ export type JsonRelativePointerLike = JsonRelativePointer | number | string | Js
  * @see https://datatracker.ietf.org/doc/html/draft-bhutton-relative-json-pointer-00
  */
 export class JsonRelativePointer implements JsonConvertible {
+    /**
+     * The list of segments that form the pointer.
+     */
     private readonly segments: JsonPointerSegments;
 
     private constructor(segments: JsonPointerSegments) {
@@ -232,17 +238,16 @@ export class JsonRelativePointer implements JsonConvertible {
         }
 
         const stack = this.getReferenceStack(root, pointer);
-
-        if (stack.length < 2) {
-            throw new JsonPointerError('Cannot set the root value.');
-        }
-
         const remainderPointer = this.getRemainderPointer();
 
         if (!remainderPointer.isRoot()) {
             remainderPointer.set(stack[stack.length - 1][1] as JsonStructure, value);
 
             return;
+        }
+
+        if (stack.length < 2) {
+            throw new JsonPointerError('Cannot set the root value.');
         }
 
         const segment = stack[stack.length - 1][0]!;
@@ -253,15 +258,10 @@ export class JsonRelativePointer implements JsonConvertible {
 
     public unset(root: JsonValue, pointer: JsonPointer = JsonPointer.root()): void {
         if (this.isKeyPointer()) {
-            throw new JsonPointerError('Cannot write to a key pointer.');
+            throw new JsonPointerError('Cannot write to a key.');
         }
 
         const stack = this.getReferenceStack(root, pointer);
-
-        if (stack.length < 2) {
-            throw new JsonPointerError('Cannot unset the root value.');
-        }
-
         const remainderPointer = this.getRemainderPointer();
 
         if (!remainderPointer.isRoot()) {
@@ -270,13 +270,17 @@ export class JsonRelativePointer implements JsonConvertible {
             return;
         }
 
+        if (stack.length < 2) {
+            throw new JsonPointerError('Cannot unset the root value.');
+        }
+
         const segment = stack[stack.length - 1][0]!;
         const structure = stack[stack.length - 2][1] as JsonStructure;
 
         JsonPointer.from([segment]).unset(structure);
     }
 
-    private getReferenceStack(root: JsonValue, pointer: JsonPointer = JsonPointer.root()): Entry[] {
+    private getReferenceStack(root: JsonValue, pointer: JsonPointer): Entry[] {
         const iterator = pointer.traverse(root);
         let current = iterator.next();
         const stack: Entry[] = [];

@@ -763,6 +763,50 @@ describe('A JSON Relative Pointer', () => {
                     foo: ['bar'],
                 },
             ],
+            [
+                {
+                    foo: ['bar', 'baz'],
+                },
+                JsonPointer.parse('/foo'),
+                JsonRelativePointer.parse('0'),
+                {},
+            ],
+            [
+                {
+                    foo: ['bar', 'baz'],
+                    highly: {
+                        nested: {
+                            objects: false,
+                        },
+                    },
+                },
+                JsonPointer.parse('/foo'),
+                JsonRelativePointer.parse('1/highly/nested/objects'),
+                {
+                    foo: ['bar', 'baz'],
+                    highly: {
+                        nested: {},
+                    },
+                },
+            ],
+            [
+                {
+                    foo: ['bar', 'baz'],
+                    highly: {
+                        nested: {
+                            objects: false,
+                        },
+                    },
+                },
+                JsonPointer.parse('/highly/nested'),
+                JsonRelativePointer.parse('0/objects'),
+                {
+                    foo: ['bar', 'baz'],
+                    highly: {
+                        nested: {},
+                    },
+                },
+            ],
         ],
     )(
         'should unset from %o at %s %s resulting in %o',
@@ -784,7 +828,7 @@ describe('A JSON Relative Pointer', () => {
                 {},
                 JsonPointer.root(),
                 JsonRelativePointer.parse('0'),
-                'Cannot set the root value.',
+                'Cannot unset the root value.',
             ],
             [
                 {
@@ -792,7 +836,7 @@ describe('A JSON Relative Pointer', () => {
                 },
                 JsonPointer.parse('/foo'),
                 JsonRelativePointer.parse('1'),
-                'Cannot set the root value.',
+                'Cannot unset the root value.',
             ],
             [
                 {
@@ -804,14 +848,14 @@ describe('A JSON Relative Pointer', () => {
             ],
         ],
     )(
-        'should fail to set to %o at %s from %s because %S',
+        'should fail to unset from %o at %s %s because %S',
         (
             root: JsonValue,
             basePointer: JsonPointer,
             relativePointer: JsonRelativePointer,
             error: string,
         ) => {
-            expect(() => relativePointer.set(root, true, basePointer)).toThrow(error);
+            expect(() => relativePointer.unset(root, basePointer)).toThrow(error);
         },
     );
 

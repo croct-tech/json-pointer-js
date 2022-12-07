@@ -22,8 +22,10 @@
 
 ## Introduction
 
-This library provides a fast, [RFC 6901](https://tools.ietf.org/html/rfc6901) compliant JSON pointer implementation
-to manipulate arbitrary JSON values with type-safety.
+This library provides a fast, [RFC 6901](https://tools.ietf.org/html/rfc6901) compliant 
+JSON pointer implementation to manipulate arbitrary JSON values with type-safety.
+[Relative JSON pointers](https://datatracker.ietf.org/doc/html/draft-bhutton-relative-json-pointer-00) 
+are also supported.
 
 These are the main highlight that distinguishes it from similar libraries:
 
