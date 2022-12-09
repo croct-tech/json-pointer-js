@@ -209,6 +209,40 @@ export class JsonRelativePointer implements JsonConvertible {
     }
 
     /**
+     * Resolves relative pointer from an absolute pointer.
+     *
+     * @param {JsonPointerLike} pointer The base pointer.
+     *
+     * @returns {JsonPointer} The resolved pointer.
+     *
+     * @throws {JsonPointerError} If the pointer is out of bounds.
+     * @throws {JsonPointerError} If the pointer is a key pointer.
+     * @throws {JsonPointerError} If the pointer includes index offsets.
+     */
+    public resolve(pointer: JsonPointerLike): JsonPointer {
+        if (this.isKeyPointer()) {
+            throw new JsonPointerError('A key pointer cannot be resolved to an absolute pointer.');
+        }
+
+        if (this.getParentIndexOffset() !== 0) {
+            throw new JsonPointerError('A pointer with an offset cannot be resolved to an absolute pointer.');
+        }
+
+        const parentIndex = this.getParentIndex();
+        const base = JsonPointer.from(pointer);
+        const segments = base.getSegments();
+
+        if (parentIndex > segments.length) {
+            throw new JsonPointerError('The relative pointer is out of bounds.');
+        }
+
+        return JsonPointer.from([
+            ...(parentIndex > 0 ? segments.slice(0, -parentIndex) : segments),
+            ...this.segments.slice(1),
+        ]);
+    }
+
+    /**
      * Returns the value at the referenced location.
      *
      * @param {JsonValue} root The value to read from.

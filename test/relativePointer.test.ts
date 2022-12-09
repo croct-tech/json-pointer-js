@@ -194,6 +194,94 @@ describe('A JSON Relative Pointer', () => {
     it.each(
         [
             [
+                JsonRelativePointer.parse('1/foo'),
+                JsonPointer.parse('/bar'),
+                JsonPointer.parse('/foo'),
+            ],
+            [
+                JsonRelativePointer.parse('0/qux'),
+                JsonPointer.parse('/foo/bar/quz'),
+                JsonPointer.parse('/foo/bar/quz/qux'),
+            ],
+            [
+                JsonRelativePointer.parse('1/qux'),
+                JsonPointer.parse('/foo/bar/quz'),
+                JsonPointer.parse('/foo/bar/qux'),
+            ],
+            [
+                JsonRelativePointer.parse('2/qux'),
+                JsonPointer.parse('/foo/bar/quz'),
+                JsonPointer.parse('/foo/qux'),
+            ],
+            [
+                JsonRelativePointer.parse('3/qux'),
+                JsonPointer.parse('/foo/bar/quz'),
+                JsonPointer.parse('/qux'),
+            ],
+            [
+                JsonRelativePointer.parse('0/foo'),
+                JsonPointer.parse('/bar'),
+                JsonPointer.parse('/bar/foo'),
+            ],
+            [
+                JsonRelativePointer.parse('0/foo'),
+                JsonPointer.root(),
+                JsonPointer.parse('/foo'),
+            ],
+            [
+                JsonRelativePointer.parse('0/foo'),
+                '',
+                JsonPointer.parse('/foo'),
+            ],
+        ],
+    )(
+        'should resolve the pointer "%s" against "%s" resulting in "%s"',
+        (
+            relativePointer: JsonRelativePointer,
+            basePointer: JsonPointerLike,
+            result: JsonPointer,
+        ) => {
+            expect(relativePointer.resolve(basePointer)).toStrictEqual(result);
+        },
+    );
+
+    it.each(
+        [
+            [
+                JsonRelativePointer.parse('1'),
+                JsonPointer.root(),
+                'The relative pointer is out of bounds.',
+            ],
+            [
+                JsonRelativePointer.parse('3'),
+                JsonPointer.parse('/foo/bar'),
+                'The relative pointer is out of bounds.',
+            ],
+            [
+                JsonRelativePointer.parse('3#'),
+                JsonPointer.parse('/foo/bar'),
+                'A key pointer cannot be resolved to an absolute pointer.',
+            ],
+            [
+                JsonRelativePointer.parse('3+2'),
+                JsonPointer.parse('/foo/bar'),
+                'A pointer with an offset cannot be resolved to an absolute pointer.',
+            ],
+        ],
+    )(
+        'should fail tp resolve the pointer "%s" against "%s" reporting "%s"',
+        (
+            relativePointer: JsonRelativePointer,
+            basePointer: JsonPointer,
+            error: string,
+        ) => {
+            expect(() => relativePointer.resolve(basePointer)).toThrow(error);
+        },
+    );
+
+    it.each(
+        [
+            [
                 1,
                 JsonPointer.root(),
                 JsonRelativePointer.parse('0'),
