@@ -302,13 +302,13 @@ export class JsonPointer implements JsonConvertible {
      *
      * This method gracefully handles missing values by returning `false`.
      *
-     * @param {JsonStructure} structure The structure to check if the value exists.
+     * @param {JsonStructure} root The value to check if the reference exists in.
      *
      * @returns {JsonValue} Returns `true` if the value exists, `false` otherwise.
      */
-    public has(structure: JsonStructure): boolean {
+    public has(root: JsonStructure): boolean {
         try {
-            this.get(structure);
+            this.get(root);
         } catch {
             return false;
         }
@@ -319,8 +319,8 @@ export class JsonPointer implements JsonConvertible {
     /**
      * Sets the value at the referenced location.
      *
-     * @param {JsonStructure} structure The structure to set the value at the referenced location.
-     * @param {JsonValue} value The value to set.
+     * @param {JsonStructure} root The value to write to.
+     * @param {JsonValue} value The value to set at the referenced location.
      *
      * @throws {InvalidReferenceError} If the pointer references the root of the structure.
      * @throws {InvalidReferenceError} If a numeric segment references a non-array value.
@@ -329,12 +329,12 @@ export class JsonPointer implements JsonConvertible {
      * @throws {InvalidReferenceError} If setting the value to an array would cause it to become
      * sparse.
      */
-    public set(structure: JsonStructure, value: JsonValue): void {
+    public set(root: JsonStructure, value: JsonValue): void {
         if (this.isRoot()) {
             throw new JsonPointerError('Cannot set root value.');
         }
 
-        const parent = this.getParent().get(structure);
+        const parent = this.getParent().get(root);
 
         if (typeof parent !== 'object' || parent === null) {
             throw new JsonPointerError(`Cannot set value at "${this.getParent()}".`);
@@ -379,14 +379,14 @@ export class JsonPointer implements JsonConvertible {
      * is a no-op. Pointers referencing array elements remove the element while keeping
      * the array dense.
      *
-     * @param {JsonStructure} structure The structure to unset the value at the referenced location.
+     * @param {JsonStructure} root The value to write to.
      *
      * @returns {JsonValue} The unset value, or `undefined` if the referenced location
      * does not exist.
      *
-     * @throws {InvalidReferenceError} If the pointer references the root of the structure.
+     * @throws {InvalidReferenceError} If the pointer references the root of the root.
      */
-    public unset(structure: JsonStructure): JsonValue | undefined {
+    public unset(root: JsonStructure): JsonValue | undefined {
         if (this.isRoot()) {
             throw new InvalidReferenceError('Cannot unset the root value.');
         }
@@ -394,7 +394,7 @@ export class JsonPointer implements JsonConvertible {
         let parent: JsonValue;
 
         try {
-            parent = this.getParent().get(structure);
+            parent = this.getParent().get(root);
         } catch {
             return undefined;
         }
