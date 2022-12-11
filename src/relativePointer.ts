@@ -184,8 +184,8 @@ export class JsonRelativePointer implements JsonConvertible {
      * These are equivalent:
      *
      * ```js
-     * JsonPointer.from(['foo', 'bar']).join(JsonPointer.from(['baz']))
-     * JsonPointer.from(['foo', 'bar', 'baz'])
+     * JsonRelativePointer.from([1, 'bar']).join(JsonPointer.from(['baz']))
+     * JsonRelativePointer.from(['1', 'bar', 'baz'])
      * ```
      *
      * @param {JsonPointer} other The pointer to append to this one.
