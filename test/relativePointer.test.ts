@@ -90,7 +90,7 @@ describe('A JSON Relative Pointer', () => {
         expect(JsonRelativePointer.parse(input).getSegments()).toStrictEqual(expectedSegments);
     });
 
-    it('should determine whether the pointer references a key.', () => {
+    it('should determine whether the pointer references a key', () => {
         expect(JsonRelativePointer.parse('1#').isKeyPointer()).toBe(true);
         expect(JsonRelativePointer.parse('1').isKeyPointer()).toBe(false);
         expect(JsonRelativePointer.parse('1/2#').isKeyPointer()).toBe(false);

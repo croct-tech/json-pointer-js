@@ -249,8 +249,8 @@ export class JsonPointer implements JsonConvertible {
      *
      * These are equivalent:
      *
-     * ```json
-     * JsonPointer.from(['foo', 'bar']).joinedWith(Pointer.from(['baz']))
+     * ```js
+     * JsonPointer.from(['foo', 'bar']).joinedWith(JsonPointer.from(['baz']))
      * JsonPointer.from(['foo', 'bar', 'baz'])
      * ```
      *
