@@ -1,7 +1,20 @@
 import {JsonStructure, JsonValue} from '@croct/json';
-import {JsonPointer, JsonPointerLike, JsonPointerSegments} from '../src';
+import {Entry, JsonPointer, JsonPointerLike, JsonPointerSegments} from '../src';
 
 describe('A JSON Pointer', () => {
+    function toArray(iterator: Iterator<any>): any[] {
+        const array: any[] = [];
+
+        let {done = true, value} = iterator.next();
+
+        while (!done) {
+            array.push(value);
+            ({done = true, value} = iterator.next());
+        }
+
+        return array;
+    }
+
     it.each(
         [
             ['', ''],
@@ -15,6 +28,7 @@ describe('A JSON Pointer', () => {
             [['foo', 1], '/foo/1'],
             [['foo', '-'], '/foo/-'],
             [0, '/0'],
+            [['0'], '/0'],
             [Number.MAX_SAFE_INTEGER, `/${Number.MAX_SAFE_INTEGER}`],
             [JsonPointer.parse('/foo/bar'), '/foo/bar'],
         ],
@@ -735,14 +749,149 @@ describe('A JSON Pointer', () => {
             .toThrow('Cannot unset the root value.');
     });
 
-    it("should determine whether it's logically equal to another pointer", () => {
-        const foo = JsonPointer.parse('/foo/qux');
+    it.each<[JsonPointer, JsonStructure, Entry[]]>(
+        [
+            [
+                JsonPointer.root(),
+                {foo: 'bar'},
+                [[null, {foo: 'bar'}]],
+            ],
+            [
+                JsonPointer.parse('/foo'),
+                {foo: 'bar'},
+                [[null, {foo: 'bar'}], ['foo', 'bar']],
+            ],
+            [
+                JsonPointer.root(),
+                ['foo'],
+                [[null, ['foo']]],
+            ],
+            [
+                JsonPointer.parse('/0'),
+                ['foo'],
+                [[null, ['foo']], [0, 'foo']],
+            ],
+            [
+                JsonPointer.parse('/foo/0'),
+                {foo: ['bar']},
+                [[null, {foo: ['bar']}], ['foo', ['bar']], [0, 'bar']],
+            ],
+            [
+                JsonPointer.parse('/a~1b'),
+                {'a/b': 'bar'},
+                [[null, {'a/b': 'bar'}], ['a/b', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/c%d'),
+                {'c%d': 'bar'},
+                [[null, {'c%d': 'bar'}], ['c%d', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/e^f'),
+                {'e^f': 'bar'},
+                [[null, {'e^f': 'bar'}], ['e^f', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/g|h'),
+                {'g|h': 'bar'},
+                [[null, {'g|h': 'bar'}], ['g|h', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/i\\j'),
+                {'i\\j': 'bar'},
+                [[null, {'i\\j': 'bar'}], ['i\\j', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/k"l'),
+                {'k"l': 'bar'},
+                [[null, {'k"l': 'bar'}], ['k"l', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/ '),
+                {' ': 'bar'},
+                [[null, {' ': 'bar'}], [' ', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/m~0n'),
+                {'m~n': 'bar'},
+                [[null, {'m~n': 'bar'}], ['m~n', 'bar']],
+            ],
+            [
+                JsonPointer.parse('/'),
+                {'': 'bar'},
+                [[null, {'': 'bar'}], ['', 'bar']],
+            ],
+        ],
+    )(
+        'should traverse "%s" from %o and return %o',
+        (pointer: JsonPointer, structure: JsonStructure, entries: Entry[]) => {
+            expect(toArray(pointer.traverse(structure))).toStrictEqual(entries);
+        },
+    );
 
-        expect(foo.equals({})).toBe(false);
-        expect(foo.equals(foo)).toBe(true);
+    it.each(
+        [
+            [
+                JsonPointer.parse('/foo'),
+                {bar: 'foo'},
+                'Property "foo" does not exist at "".',
+            ],
+            [
+                JsonPointer.parse('/foo'),
+                [],
+                'Expected an object at "", got an array.',
+            ],
+            [
+                JsonPointer.parse('/1'),
+                [],
+                'Index 1 is out of bounds at "".',
+            ],
+            [
+                JsonPointer.parse('/-'),
+                [],
+                'Index 0 is out of bounds at "".',
+            ],
+            [
+                JsonPointer.parse('/0'),
+                {},
+                'Expected array at "", got object.',
+            ],
+            [
+                JsonPointer.parse('/foo/bar'),
+                {foo: null},
+                'Cannot read value at "/foo".',
+            ],
+            [
+                JsonPointer.parse('/foo/bar'),
+                {foo: true},
+                'Cannot read value at "/foo".',
+            ],
+            [
+                JsonPointer.parse('/foo/bar'),
+                {foo: 1},
+                'Cannot read value at "/foo".',
+            ],
+            [
+                JsonPointer.parse('/foo/bar'),
+                {foo: 'bar'},
+                'Cannot read value at "/foo".',
+            ],
+        ],
+    )(
+        'should fail to traverse "%s" from %o because "%s"',
+        (pointer: JsonPointer, structure: JsonStructure, expectedError: string) => {
+            expect(() => toArray(pointer.traverse(structure))).toThrowError(expectedError);
+        },
+    );
+
+    it("should determine whether it's logically equal to another pointer", () => {
+        const pointer = JsonPointer.parse('/foo/qux');
+
+        expect(pointer.equals({})).toBe(false);
+        expect(pointer.equals(pointer)).toBe(true);
         expect(JsonPointer.parse('/foo/qux').equals(JsonPointer.parse('/foo/qux'))).toBe(true);
-        expect(foo.equals(JsonPointer.parse('/bar'))).toBe(false);
-        expect(foo.equals(JsonPointer.parse('/bar/baz'))).toBe(false);
+        expect(pointer.equals(JsonPointer.parse('/bar'))).toBe(false);
+        expect(pointer.equals(JsonPointer.parse('/bar/baz'))).toBe(false);
     });
 
     it('can be converted to string', () => {
