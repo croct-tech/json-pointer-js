@@ -581,7 +581,7 @@ describe('A JSON Pointer', () => {
             ],
         ],
     )(
-        'should fail with invalid reference error to set value at "%s" into %s because "%s"',
+        'should fail to set value at "%s" into %s with invalid reference error because "%s"',
         (pointer: JsonPointer, structure: JsonStructure, errorMessage: string) => {
             expect(() => pointer.set(structure, null)).toThrowWithMessage(
                 InvalidReferenceError,
@@ -619,7 +619,7 @@ describe('A JSON Pointer', () => {
             ],
         ],
     )(
-        'should fail with json pointer error to set value at "%s" into %s because "%s"',
+        'should fail to set value at "%s" into %s with json pointer error because "%s"',
         (pointer: JsonPointer, structure: JsonStructure, errorMessage: string) => {
             expect(() => pointer.set(structure, null)).toThrowWithMessage(
                 JsonPointerError,
