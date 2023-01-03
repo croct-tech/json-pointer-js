@@ -1,5 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {JsonValue} from '@croct/json';
-import {JsonPointer, JsonPointerLike, JsonPointerSegments} from '../src';
+import {
+    InvalidReferenceError,
+    InvalidSyntaxError,
+    JsonPointer,
+    JsonPointerError,
+    JsonPointerLike,
+    JsonPointerSegments,
+} from '../src';
 import {JsonRelativePointer, JsonRelativePointerLike} from '../src/relativePointer';
 
 describe('A JSON Relative Pointer', () => {
@@ -44,30 +52,34 @@ describe('A JSON Relative Pointer', () => {
     )(
         'should fail to convert "%s" because it does not start with a valid relative segment',
         (pointer: JsonRelativePointerLike) => {
-            expect(() => JsonRelativePointer.from(pointer))
-                .toThrow(
-                    'A relative JSON pointer must start with a non-negative '
-                    + 'integer optionally followed by a hash character.',
-                );
+            expect(() => JsonRelativePointer.from(pointer)).toThrowWithMessage(
+                InvalidSyntaxError,
+                'A relative JSON pointer must start with a non-negative '
+                + 'integer optionally followed by a hash character.',
+            );
         },
     );
 
     it('should have at least one segment', () => {
-        expect(() => JsonRelativePointer.from([]))
-            .toThrowError('A relative pointer must have at least one segment.');
+        expect(() => JsonRelativePointer.from([])).toThrowWithMessage(
+            InvalidSyntaxError,
+            'A relative pointer must have at least one segment.',
+        );
     });
 
     it('should validate escape sequences', () => {
-        expect(() => JsonRelativePointer.parse('1/~a'))
-            .toThrowError('Invalid escape sequence in "/1/~a".');
+        expect(() => JsonRelativePointer.parse('1/~a')).toThrowWithMessage(
+            InvalidSyntaxError,
+            'Invalid escape sequence in "/1/~a".',
+        );
     });
 
     it('should fail to parse an empty string', () => {
-        expect(() => JsonRelativePointer.parse(''))
-            .toThrowError(
-                'A relative JSON pointer must start with a non-negative '
-                + 'integer optionally followed by a hash character.',
-            );
+        expect(() => JsonRelativePointer.parse('')).toThrowWithMessage(
+            InvalidSyntaxError,
+            'A relative JSON pointer must start with a non-negative '
+            + 'integer optionally followed by a hash character.',
+        );
     });
 
     it.each(
@@ -120,8 +132,10 @@ describe('A JSON Relative Pointer', () => {
     });
 
     it('should fail to return the parent of a unresolved segment', () => {
-        expect(() => JsonRelativePointer.parse('1').getParent())
-            .toThrowError('Cannot get the parent of a unresolved segment.');
+        expect(() => JsonRelativePointer.parse('1').getParent()).toThrowWithMessage(
+            JsonPointerError,
+            'Cannot get the parent of a unresolved segment.'
+        );
     });
 
     it('should return the pointer segments', () => {
@@ -169,8 +183,10 @@ describe('A JSON Relative Pointer', () => {
     });
 
     it('should fail to join a relative key target with another pointer', () => {
-        expect(() => JsonRelativePointer.parse('1#').joinedWith(JsonPointer.root()))
-            .toThrowError('Cannot join a key pointer.');
+        expect(() => JsonRelativePointer.parse('1#').joinedWith(JsonPointer.root())).toThrowWithMessage(
+            JsonPointerError,
+            'Cannot join a key pointer.',
+        );
     });
 
     it("should determine whether it's logically equal to another pointer", () => {
@@ -273,9 +289,12 @@ describe('A JSON Relative Pointer', () => {
         (
             relativePointer: JsonRelativePointer,
             basePointer: JsonPointer,
-            error: string,
+            expectedError: string,
         ) => {
-            expect(() => relativePointer.resolve(basePointer)).toThrow(error);
+            expect(() => relativePointer.resolve(basePointer)).toThrowWithMessage(
+                JsonPointerError,
+                expectedError,
+            );
         },
     );
 
@@ -445,70 +464,73 @@ describe('A JSON Relative Pointer', () => {
 
     it.each(
         [
-            [
-                null,
-                JsonPointer.parse('/invalid'),
-                JsonRelativePointer.parse('0'),
-                'Cannot read value at "".',
-            ],
-            [
-                {nested: 'foo'},
-                JsonPointer.parse('/nested'),
-                JsonRelativePointer.parse('2'),
-                'The relative pointer is out of bounds.',
-            ],
-            [
-                {nested: 'foo'},
-                JsonPointer.parse('/nested'),
-                JsonRelativePointer.parse('1+1'),
-                'An offset can only be applied to array elements',
-            ],
-            [
-                {nested: 'foo'},
-                JsonPointer.parse('/nested'),
-                JsonRelativePointer.parse('1+1#'),
-                'An offset can only be applied to array elements',
-            ],
-            [
-                {nested: 'foo'},
-                JsonPointer.parse('/nested'),
-                JsonRelativePointer.parse('1-1'),
-                'An offset can only be applied to array elements',
-            ],
-            [
-                {nested: 'foo'},
-                JsonPointer.parse('/nested'),
-                JsonRelativePointer.parse('1-1#'),
-                'An offset can only be applied to array elements',
-            ],
-            [
-                {nested: [0, 1]},
-                JsonPointer.parse('/nested/0'),
-                JsonRelativePointer.parse('0-1#'),
-                'The element index is out of bounds.',
-            ],
-            [
-                {nested: [0, 1]},
-                JsonPointer.parse('/nested/1'),
-                JsonRelativePointer.parse('0+1#'),
-                'The element index is out of bounds.',
-            ],
-            [
-                {nested: 'foo'},
-                JsonPointer.parse('/nested'),
-                JsonRelativePointer.parse('1#'),
-                'The root value has no key.',
-            ],
+            {
+                root: null,
+                basePointer: JsonPointer.parse('/invalid'),
+                relativePointer: JsonRelativePointer.parse('0'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'Cannot read value at "".'},
+            },
+            {
+                root: {nested: 'foo'},
+                basePointer: JsonPointer.parse('/nested'),
+                relativePointer: JsonRelativePointer.parse('2'),
+                expectedError: {error: JsonPointerError, errorMessage: 'The relative pointer is out of bounds.'},
+            },
+            {
+                root: {nested: 'foo'},
+                basePointer: JsonPointer.parse('/nested'),
+                relativePointer: JsonRelativePointer.parse('1+1'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'An offset can only be applied to array elements.'},
+            },
+            {
+                root: {nested: 'foo'},
+                basePointer: JsonPointer.parse('/nested'),
+                relativePointer: JsonRelativePointer.parse('1+1#'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'An offset can only be applied to array elements.'},
+            },
+            {
+                root: {nested: 'foo'},
+                basePointer: JsonPointer.parse('/nested'),
+                relativePointer: JsonRelativePointer.parse('1-1'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'An offset can only be applied to array elements.'},
+            },
+            {
+                root: {nested: 'foo'},
+                basePointer: JsonPointer.parse('/nested'),
+                relativePointer: JsonRelativePointer.parse('1-1#'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'An offset can only be applied to array elements.'},
+            },
+            {
+                root: {nested: [0, 1]},
+                basePointer: JsonPointer.parse('/nested/0'),
+                relativePointer: JsonRelativePointer.parse('0-1#'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'The element index is out of bounds.'},
+            },
+            {
+                root: {nested: [0, 1]},
+                basePointer: JsonPointer.parse('/nested/1'),
+                relativePointer: JsonRelativePointer.parse('0+1#'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'The element index is out of bounds.'},
+            },
+            {
+                root: {nested: 'foo'},
+                basePointer: JsonPointer.parse('/nested'),
+                relativePointer: JsonRelativePointer.parse('1#'),
+                expectedError: {error: InvalidReferenceError, errorMessage: 'The root value has no key.'},
+            },
         ],
     )(
-        'should fail to get value from %o starting from %s with pointer %s reporting "%s"',
-        (
-            root: JsonValue,
-            basePointer: JsonPointer,
-            relativePointer: JsonRelativePointer,
-            error: string,
-        ) => {
-            expect(() => relativePointer.get(root, basePointer)).toThrow(error);
+        'should fail to get value from $root starting from $basePointer with pointer $relativePointer reporting "$expectedError.errorMessage"',
+        ({
+            root,
+            basePointer,
+            relativePointer,
+            expectedError: {error, errorMessage},
+        }) => {
+            expect(() => relativePointer.get(root, basePointer)).toThrowWithMessage(
+                error,
+                errorMessage,
+            );
         },
     );
 
@@ -835,7 +857,10 @@ describe('A JSON Relative Pointer', () => {
             relativePointer: JsonRelativePointer,
             error: string,
         ) => {
-            expect(() => relativePointer.set(root, true, basePointer)).toThrow(error);
+            expect(() => relativePointer.set(root, true, basePointer)).toThrowWithMessage(
+                JsonPointerError,
+                error,
+            );
         },
     );
 
@@ -943,7 +968,10 @@ describe('A JSON Relative Pointer', () => {
             relativePointer: JsonRelativePointer,
             error: string,
         ) => {
-            expect(() => relativePointer.unset(root, basePointer)).toThrow(error);
+            expect(() => relativePointer.unset(root, basePointer)).toThrowWithMessage(
+                JsonPointerError,
+                error,
+            );
         },
     );
 
