@@ -931,7 +931,7 @@ describe('A JSON Pointer', () => {
     )(
         'should fail to traverse "%s" from %o because "%s"',
         (pointer: JsonPointer, structure: JsonStructure, expectedError: string) => {
-            expect(() => toArray(pointer.traverse(structure))).toThrow(expectedError);
+            expect(() => toArray(pointer.traverse(structure))).toThrowWithMessage(InvalidReferenceError, expectedError);
         },
     );
 
