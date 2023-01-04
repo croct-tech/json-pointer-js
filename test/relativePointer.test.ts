@@ -466,13 +466,19 @@ describe('A JSON Relative Pointer', () => {
                 root: null,
                 basePointer: JsonPointer.parse('/invalid'),
                 relativePointer: JsonRelativePointer.parse('0'),
-                error: {type: InvalidReferenceError, message: 'Cannot read value at "".'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'Cannot read value at "".',
+                },
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('2'),
-                error: {type: JsonPointerError, message: 'The relative pointer is out of bounds.'},
+                error: {
+                    type: JsonPointerError,
+                    message: 'The relative pointer is out of bounds.',
+                },
             },
             {
                 root: {nested: 'foo'},
@@ -514,19 +520,28 @@ describe('A JSON Relative Pointer', () => {
                 root: {nested: [0, 1]},
                 basePointer: JsonPointer.parse('/nested/0'),
                 relativePointer: JsonRelativePointer.parse('0-1#'),
-                error: {type: InvalidReferenceError, message: 'The element index is out of bounds.'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'The element index is out of bounds.',
+                },
             },
             {
                 root: {nested: [0, 1]},
                 basePointer: JsonPointer.parse('/nested/1'),
                 relativePointer: JsonRelativePointer.parse('0+1#'),
-                error: {type: InvalidReferenceError, message: 'The element index is out of bounds.'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'The element index is out of bounds.',
+                },
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('1#'),
-                error: {type: InvalidReferenceError, message: 'The root value has no key.'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'The root value has no key.',
+                },
             },
         ],
     )(
