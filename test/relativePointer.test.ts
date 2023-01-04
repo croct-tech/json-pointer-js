@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {JsonValue} from '@croct/json';
 import {
     InvalidReferenceError,
@@ -134,7 +133,7 @@ describe('A JSON Relative Pointer', () => {
     it('should fail to return the parent of a unresolved segment', () => {
         expect(() => JsonRelativePointer.parse('1').getParent()).toThrowWithMessage(
             JsonPointerError,
-            'Cannot get the parent of a unresolved segment.'
+            'Cannot get the parent of a unresolved segment.',
         );
     });
 
@@ -142,8 +141,7 @@ describe('A JSON Relative Pointer', () => {
         expect(JsonRelativePointer.parse('1/foo/0/baz').getSegments())
             .toStrictEqual([1, 'foo', 0, 'baz']);
 
-        expect(JsonRelativePointer.parse('1#').getSegments())
-            .toStrictEqual(['1#']);
+        expect(JsonRelativePointer.parse('1#').getSegments()).toStrictEqual(['1#']);
     });
 
     it.each(
@@ -468,67 +466,75 @@ describe('A JSON Relative Pointer', () => {
                 root: null,
                 basePointer: JsonPointer.parse('/invalid'),
                 relativePointer: JsonRelativePointer.parse('0'),
-                expectedError: {error: InvalidReferenceError, message: 'Cannot read value at "".'},
+                error: {type: InvalidReferenceError, message: 'Cannot read value at "".'},
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('2'),
-                expectedError: {error: JsonPointerError, message: 'The relative pointer is out of bounds.'},
+                error: {type: JsonPointerError, message: 'The relative pointer is out of bounds.'},
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('1+1'),
-                expectedError: {error: InvalidReferenceError, message: 'An offset can only be applied to array elements.'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'An offset can only be applied to array elements.',
+                },
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('1+1#'),
-                expectedError: {error: InvalidReferenceError, message: 'An offset can only be applied to array elements.'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'An offset can only be applied to array elements.',
+                },
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('1-1'),
-                expectedError: {error: InvalidReferenceError, message: 'An offset can only be applied to array elements.'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'An offset can only be applied to array elements.',
+                },
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('1-1#'),
-                expectedError: {error: InvalidReferenceError, message: 'An offset can only be applied to array elements.'},
+                error: {
+                    type: InvalidReferenceError,
+                    message: 'An offset can only be applied to array elements.',
+                },
             },
             {
                 root: {nested: [0, 1]},
                 basePointer: JsonPointer.parse('/nested/0'),
                 relativePointer: JsonRelativePointer.parse('0-1#'),
-                expectedError: {error: InvalidReferenceError, message: 'The element index is out of bounds.'},
+                error: {type: InvalidReferenceError, message: 'The element index is out of bounds.'},
             },
             {
                 root: {nested: [0, 1]},
                 basePointer: JsonPointer.parse('/nested/1'),
                 relativePointer: JsonRelativePointer.parse('0+1#'),
-                expectedError: {error: InvalidReferenceError, message: 'The element index is out of bounds.'},
+                error: {type: InvalidReferenceError, message: 'The element index is out of bounds.'},
             },
             {
                 root: {nested: 'foo'},
                 basePointer: JsonPointer.parse('/nested'),
                 relativePointer: JsonRelativePointer.parse('1#'),
-                expectedError: {error: InvalidReferenceError, message: 'The root value has no key.'},
+                error: {type: InvalidReferenceError, message: 'The root value has no key.'},
             },
         ],
     )(
-        'should fail to get value from $root starting from $basePointer with pointer $relativePointer reporting "$expectedError.message"',
-        ({
-            root,
-            basePointer,
-            relativePointer,
-            expectedError: {error, message},
-        }) => {
+        // eslint-disable-next-line max-len -- Disabled for better readability
+        'should fail to get value from $root starting from $basePointer with pointer $relativePointer reporting "error.message"',
+        ({root, basePointer, relativePointer, error: {type, message}}) => {
             expect(() => relativePointer.get(root, basePointer)).toThrowWithMessage(
-                error,
+                type,
                 message,
             );
         },
