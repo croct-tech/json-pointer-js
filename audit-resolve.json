@@ -1,0 +1,16 @@
+{
+  "decisions": {
+    "1088341|json5": {
+      "decision": "ignore",
+      "madeAt": 1673548867297,
+      "expiresAt": 1674153634073
+    },
+    "1088342|json5": {
+      "decision": "ignore",
+      "madeAt": 1673548878447,
+      "expiresAt": 1674153634073
+    }
+  },
+  "rules": {},
+  "version": 1
+}
