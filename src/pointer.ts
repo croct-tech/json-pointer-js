@@ -167,7 +167,9 @@ export class JsonPointer implements JsonConvertible {
             );
         }
 
-        return new JsonPointer(path.substring(1).split('/').map(JsonPointer.unescapeSegment));
+        return new JsonPointer(path.substring(1)
+            .split('/')
+            .map(JsonPointer.unescapeSegment));
     }
 
     /**
@@ -545,7 +547,9 @@ export class JsonPointer implements JsonConvertible {
             return '';
         }
 
-        return `/${this.segments.map(JsonPointer.escapeSegment).join('/')}`;
+        return `/${this.segments
+            .map(JsonPointer.escapeSegment)
+            .join('/')}`;
     }
 
     /**

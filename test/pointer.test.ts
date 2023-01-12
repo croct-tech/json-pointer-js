@@ -1,5 +1,13 @@
 import {JsonStructure, JsonValue} from '@croct/json';
-import {Entry, JsonPointer, JsonPointerLike, JsonPointerSegments} from '../src';
+import {
+    Entry,
+    InvalidReferenceError,
+    InvalidSyntaxError,
+    JsonPointer,
+    JsonPointerError,
+    JsonPointerLike,
+    JsonPointerSegments,
+} from '../src';
 
 describe('A JSON Pointer', () => {
     function toArray(iterator: Iterator<any>): any[] {
@@ -49,8 +57,10 @@ describe('A JSON Pointer', () => {
     )(
         'should fail to convert "%s" because "%s"',
         (pointer: JsonPointerLike, expectedError: string) => {
-            expect(() => JsonPointer.from(pointer))
-                .toThrow(expectedError);
+            expect(() => JsonPointer.from(pointer)).toThrowWithMessage(
+                InvalidSyntaxError,
+                expectedError,
+            );
         },
     );
 
@@ -62,8 +72,10 @@ describe('A JSON Pointer', () => {
             ['~1/foo', 'A non-root pointer must start with a slash, actual "~1/foo".'],
         ],
     )('should fail to parse "%s" reporting %s', (input: string, expectedError: string) => {
-        expect(() => JsonPointer.parse(input))
-            .toThrowError(expectedError);
+        expect(() => JsonPointer.parse(input)).toThrowWithMessage(
+            InvalidSyntaxError,
+            expectedError,
+        );
     });
 
     it.each(
@@ -100,13 +112,14 @@ describe('A JSON Pointer', () => {
     });
 
     it('should fail to return the parent of the root pointer', () => {
-        expect(() => JsonPointer.root().getParent())
-            .toThrowError('Cannot get parent of root pointer.');
+        expect(() => JsonPointer.root().getParent()).toThrowWithMessage(
+            JsonPointerError,
+            'Cannot get parent of root pointer.',
+        );
     });
 
     it('should return the pointer segments', () => {
-        expect(JsonPointer.parse('/foo/0/baz').getSegments())
-            .toStrictEqual(['foo', 0, 'baz']);
+        expect(JsonPointer.parse('/foo/0/baz').getSegments()).toStrictEqual(['foo', 0, 'baz']);
     });
 
     it.each(
@@ -135,11 +148,15 @@ describe('A JSON Pointer', () => {
     );
 
     it('should fail to create a sub pointer if the depth is out of bounds', () => {
-        expect(() => JsonPointer.parse('/foo').truncatedAt(-1))
-            .toThrow('Depth -1 is out of bounds.');
+        expect(() => JsonPointer.parse('/foo').truncatedAt(-1)).toThrowWithMessage(
+            JsonPointerError,
+            'Depth -1 is out of bounds.',
+        );
 
-        expect(() => JsonPointer.parse('/foo').truncatedAt(2))
-            .toThrow('Depth 2 is out of bounds.');
+        expect(() => JsonPointer.parse('/foo').truncatedAt(2)).toThrowWithMessage(
+            JsonPointerError,
+            'Depth 2 is out of bounds.',
+        );
     });
 
     it.each(
@@ -314,7 +331,10 @@ describe('A JSON Pointer', () => {
     )(
         'should fail to get value at "%s" from %s because "%s"',
         (pointer: JsonPointer, structure: JsonStructure, expectedError: string) => {
-            expect(() => pointer.get(structure)).toThrowError(expectedError);
+            expect(() => pointer.get(structure)).toThrowWithMessage(
+                InvalidReferenceError,
+                expectedError,
+            );
         },
     );
 
@@ -525,19 +545,32 @@ describe('A JSON Pointer', () => {
     it.each(
         [
             [
-                JsonPointer.root(),
-                {bar: 'foo'},
-                'Cannot set root value.',
+                JsonPointer.parse('/foo'),
+                [],
+                'Expected an object at "", got an array.',
             ],
+            [
+                JsonPointer.parse('/0'),
+                {},
+                'Expected array at "", got object.',
+            ],
+        ],
+    )(
+        'should fail to set value at "%s" into %s because "%s"',
+        (pointer: JsonPointer, structure: JsonStructure, errorMessage: string) => {
+            expect(() => pointer.set(structure, null)).toThrowWithMessage(
+                Error,
+                errorMessage,
+            );
+        },
+    );
+
+    it.each(
+        [
             [
                 JsonPointer.parse('/foo/bar'),
                 {bar: 'foo'},
                 'Property "foo" does not exist at "".',
-            ],
-            [
-                JsonPointer.parse('/foo'),
-                [],
-                'Expected an object at "", got an array.',
             ],
             [
                 JsonPointer.parse('/1'),
@@ -554,10 +587,23 @@ describe('A JSON Pointer', () => {
                 [],
                 'Index 1 is out of bounds at "".',
             ],
+        ],
+    )(
+        'should fail to set value at "%s" into %s with invalid reference error because "%s"',
+        (pointer: JsonPointer, structure: JsonStructure, errorMessage: string) => {
+            expect(() => pointer.set(structure, null)).toThrowWithMessage(
+                InvalidReferenceError,
+                errorMessage,
+            );
+        },
+    );
+
+    it.each(
+        [
             [
-                JsonPointer.parse('/0'),
-                {},
-                'Expected array at "", got object.',
+                JsonPointer.root(),
+                {bar: 'foo'},
+                'Cannot set root value.',
             ],
             [
                 JsonPointer.parse('/foo/bar'),
@@ -581,9 +627,12 @@ describe('A JSON Pointer', () => {
             ],
         ],
     )(
-        'should fail to set value at "%s" into %s because "%s"',
-        (pointer: JsonPointer, structure: JsonStructure, expectedError: string) => {
-            expect(() => pointer.set(structure, null)).toThrowError(expectedError);
+        'should fail to set value at "%s" into %s with json pointer error because "%s"',
+        (pointer: JsonPointer, structure: JsonStructure, errorMessage: string) => {
+            expect(() => pointer.set(structure, null)).toThrowWithMessage(
+                JsonPointerError,
+                errorMessage,
+            );
         },
     );
 
@@ -745,8 +794,10 @@ describe('A JSON Pointer', () => {
     );
 
     it('should fail to unset the root value', () => {
-        expect(() => JsonPointer.root().unset({}))
-            .toThrow('Cannot unset the root value.');
+        expect(() => JsonPointer.root().unset({})).toThrowWithMessage(
+            InvalidReferenceError,
+            'Cannot unset the root value.',
+        );
     });
 
     it.each<[JsonPointer, JsonStructure, Entry[]]>(
@@ -880,7 +931,7 @@ describe('A JSON Pointer', () => {
     )(
         'should fail to traverse "%s" from %o because "%s"',
         (pointer: JsonPointer, structure: JsonStructure, expectedError: string) => {
-            expect(() => toArray(pointer.traverse(structure))).toThrowError(expectedError);
+            expect(() => toArray(pointer.traverse(structure))).toThrowWithMessage(InvalidReferenceError, expectedError);
         },
     );
 
