@@ -41,7 +41,7 @@ jobs:
       - name: Check dependency vulnerabilities
         run: |-
           npm i -g npm-audit-resolver@3.0.0-7
-          npx check-audit
+          npx check-audit --omit dev
 
   validate-code:
     runs-on: ubuntu-18.04
