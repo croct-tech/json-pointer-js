@@ -289,6 +289,11 @@ describe('A JSON Pointer', () => {
             ],
             [
                 JsonPointer.parse('/foo'),
+                {foo: undefined},
+                'Property "foo" does not exist at "".',
+            ],
+            [
+                JsonPointer.parse('/foo'),
                 [],
                 'Expected an object at "", got an array.',
             ],
