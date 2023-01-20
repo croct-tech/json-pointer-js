@@ -487,13 +487,15 @@ export class JsonPointer implements JsonConvertible {
                 );
             }
 
-            if (!(segment in current)) {
+            const nextValue = current[segment];
+
+            if (nextValue === undefined) {
                 throw new InvalidReferenceError(
                     `Property "${segment}" does not exist at "${this.truncatedAt(i)}".`,
                 );
             }
 
-            current = current[segment];
+            current = nextValue;
 
             yield [segment, current];
         }
