@@ -34,7 +34,7 @@
     "@croct/json": "^2.0.1"
   },
   "devDependencies": {
-    "@croct/eslint-plugin": "^0.6.3",
+    "@croct/eslint-plugin": "^0.7.0",
     "@types/jest": "^29.0.0",
     "@typescript-eslint/parser": "^5.13",
     "eslint": "^8.10",
