@@ -1,5 +1,5 @@
 {
-  "name": "@croct-tech/json-pointer",
+  "name": "@croct/json-pointer",
   "version": "0.0.0-dev",
   "description": "A RFC6901 compliant type-safe JSON pointer library to handle arbitrary structured data.",
   "author": {
@@ -7,7 +7,7 @@
     "email": "lib+json@croct.com",
     "url": "https://github.com/croct-tech/json-pointer-js"
   },
-  "license": "PRIVATE",
+  "license": "MIT",
   "keywords": [
     "croct",
     "typescript",
@@ -31,13 +31,13 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@croct/json": "^2.0.1"
+    "@croct/json": "^2.1.0"
   },
   "devDependencies": {
     "@croct/eslint-plugin": "^0.7.0",
     "@types/jest": "^29.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "eslint": "^9.0.0",
+    "eslint": "^8.57.1",
     "jest": "^29.0.0",
     "jest-extended": "^4.0.0",
     "ts-jest": "^29.0.0",
