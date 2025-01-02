@@ -1,5 +1,5 @@
 {
-  "name": "@croct-tech/json-pointer",
+  "name": "@croct/json-pointer",
   "version": "0.0.0-dev",
   "description": "A RFC6901 compliant type-safe JSON pointer library to handle arbitrary structured data.",
   "author": {
@@ -7,7 +7,7 @@
     "email": "lib+json@croct.com",
     "url": "https://github.com/croct-tech/json-pointer-js"
   },
-  "license": "PRIVATE",
+  "license": "MIT",
   "keywords": [
     "croct",
     "typescript",
