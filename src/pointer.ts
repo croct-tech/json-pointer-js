@@ -1,4 +1,4 @@
-import {JsonConvertible, JsonStructure, JsonValue} from '@croct/json';
+import {JsonConvertible} from '@croct/json';
 
 /**
  * A value that can be converted to a JSON pointer.
@@ -14,6 +14,31 @@ export type JsonPointerSegment = string | number;
  * A list of JSON pointer segments.
  */
 export type JsonPointerSegments = JsonPointerSegment[];
+
+/**
+ * A record or array representing the root of a structure.
+ */
+export type RootStructure = Record<string | number | symbol, any> | any[];
+
+export type RootValue = any;
+
+/**
+ * A union of all possible values in a structure.
+ */
+export type ReferencedValue<T> = NestedValue<T>;
+
+/**
+ * A union of all possible values in a structure, excluding the given type.
+ */
+type NestedValue<T, U = never> = T | (
+    T extends object
+        ? T extends U
+            ? never
+            : T extends Array<infer I>
+                ? NestedValue<I, U | T>
+                : T[keyof T] | NestedValue<T[keyof T], U | T>
+        : never
+    );
 
 /**
  * An error indicating a problem related to JSON pointer operations.
@@ -51,7 +76,7 @@ export class InvalidReferenceError extends JsonPointerError {
 /**
  * A key-value pair representing a JSON pointer segment and its value.
  */
-export type Entry = [JsonPointerSegment | null, JsonValue];
+export type Entry<T> = [JsonPointerSegment | null, T];
 
 /**
  * An RFC 6901-compliant JSON pointer.
@@ -273,15 +298,15 @@ export class JsonPointer implements JsonConvertible {
     /**
      * Returns the value at the referenced location.
      *
-     * @param {JsonValue} value The value to read from.
+     * @param {RootValue} value The value to read from.
      *
-     * @returns {JsonValue} The value at the referenced location.
+     * @returns {ReferencedValue} The value at the referenced location.
      *
      * @throws {InvalidReferenceError} If a numeric segment references a non-array value.
      * @throws {InvalidReferenceError} If a string segment references an array value.
      * @throws {InvalidReferenceError} If there is no value at any level of the pointer.
      */
-    public get(value: JsonValue): JsonValue {
+    public get<T extends RootValue>(value: T): ReferencedValue<T> {
         const iterator = this.traverse(value);
 
         let result = iterator.next();
@@ -304,11 +329,11 @@ export class JsonPointer implements JsonConvertible {
      *
      * This method gracefully handles missing values by returning `false`.
      *
-     * @param {JsonStructure} root The value to check if the reference exists in.
+     * @param {RootValue} root The value to check if the reference exists in.
      *
-     * @returns {JsonValue} Returns `true` if the value exists, `false` otherwise.
+     * @returns {boolean} Returns `true` if the value exists, `false` otherwise.
      */
-    public has(root: JsonStructure): boolean {
+    public has(root: RootValue): boolean {
         try {
             this.get(root);
         } catch {
@@ -321,8 +346,8 @@ export class JsonPointer implements JsonConvertible {
     /**
      * Sets the value at the referenced location.
      *
-     * @param {JsonStructure} root The value to write to.
-     * @param {JsonValue} value The value to set at the referenced location.
+     * @param {RootValue} root The value to write to.
+     * @param {unknown} value The value to set at the referenced location.
      *
      * @throws {InvalidReferenceError} If the pointer references the root of the structure.
      * @throws {InvalidReferenceError} If a numeric segment references a non-array value.
@@ -331,16 +356,18 @@ export class JsonPointer implements JsonConvertible {
      * @throws {InvalidReferenceError} If setting the value to an array would cause it to become
      * sparse.
      */
-    public set(root: JsonStructure, value: JsonValue): void {
+    public set<T extends RootValue>(root: T, value: unknown): void {
         if (this.isRoot()) {
             throw new JsonPointerError('Cannot set root value.');
         }
 
-        const parent = this.getParent().get(root);
+        const target = this.getParent().get(root);
 
-        if (typeof parent !== 'object' || parent === null) {
+        if (typeof target !== 'object' || target === null) {
             throw new JsonPointerError(`Cannot set value at "${this.getParent()}".`);
         }
+
+        const parent: RootStructure = target;
 
         const segmentIndex = this.segments.length - 1;
         const segment = this.segments[segmentIndex];
@@ -381,29 +408,31 @@ export class JsonPointer implements JsonConvertible {
      * is a no-op. Pointers referencing array elements remove the element while keeping
      * the array dense.
      *
-     * @param {JsonStructure} root The value to write to.
+     * @param {RootValue} root The value to write to.
      *
-     * @returns {JsonValue} The unset value, or `undefined` if the referenced location
+     * @returns {ReferencedValue|undefined} The unset value, or `undefined` if the referenced location
      * does not exist.
      *
      * @throws {InvalidReferenceError} If the pointer references the root of the root.
      */
-    public unset(root: JsonStructure): JsonValue | undefined {
+    public unset<T extends RootValue>(root: T): ReferencedValue<T> | undefined {
         if (this.isRoot()) {
             throw new InvalidReferenceError('Cannot unset the root value.');
         }
 
-        let parent: JsonValue;
+        let target: ReferencedValue<T>;
 
         try {
-            parent = this.getParent().get(root);
+            target = this.getParent().get(root);
         } catch {
             return undefined;
         }
 
-        if (typeof parent !== 'object' || parent === null) {
+        if (typeof target !== 'object' || target === null) {
             return undefined;
         }
+
+        const parent: RootStructure = target;
 
         const segmentIndex = this.segments.length - 1;
         const segment = this.segments[segmentIndex];
@@ -434,17 +463,17 @@ export class JsonPointer implements JsonConvertible {
     /**
      * Returns an iterator over the stack of values that the pointer references.
      *
-     * @param {JsonValue} root The value to traverse.
+     * @param {RootValue} root The value to traverse.
      *
-     * @returns {Iterator<JsonPointer>} An iterator over the stack of values that the
+     * @returns {Iterator<Entry<ReferencedValue<T>>} An iterator over the stack of values that the
      * pointer references.
      *
      * @throws {InvalidReferenceError} If a numeric segment references a non-array value.
      * @throws {InvalidReferenceError} If a string segment references an array value.
      * @throws {InvalidReferenceError} If there is no value at any level of the pointer.
      */
-    public* traverse(root: JsonValue): Iterator<Entry> {
-        let current: JsonValue = root;
+    public* traverse<T extends RootValue>(root: T): Iterator<Entry<ReferencedValue<T>>> {
+        let current: ReferencedValue<T> = root;
 
         yield [null, current];
 
@@ -487,15 +516,13 @@ export class JsonPointer implements JsonConvertible {
                 );
             }
 
-            const nextValue = current[segment];
-
-            if (nextValue === undefined) {
+            if (!(segment in current)) {
                 throw new InvalidReferenceError(
                     `Property "${segment}" does not exist at "${this.truncatedAt(i)}".`,
                 );
             }
 
-            current = nextValue;
+            current = current[segment as keyof typeof current] as ReferencedValue<T>;
 
             yield [segment, current];
         }
@@ -508,7 +535,7 @@ export class JsonPointer implements JsonConvertible {
      *
      * @returns {boolean} `true` if the pointers are logically equal, `false` otherwise.
      */
-    public equals(other: any): other is this {
+    public equals(other: unknown): other is JsonPointer {
         if (this === other) {
             return true;
         }
