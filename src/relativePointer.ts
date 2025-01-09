@@ -8,7 +8,6 @@ import {
     JsonPointerLike,
     Entry,
     InvalidReferenceError,
-    RootStructure,
     ReferencedValue,
     RootValue,
 } from './pointer';
@@ -349,7 +348,7 @@ export class JsonRelativePointer implements JsonConvertible {
      *
      * @throws {InvalidReferenceError} If the pointer references the root of the structure.
      */
-    public unset<T extends RootStructure>(root: T, pointer = JsonPointer.root()): ReferencedValue<T> | undefined {
+    public unset<T extends RootValue>(root: T, pointer = JsonPointer.root()): ReferencedValue<T> | undefined {
         if (this.isKeyPointer()) {
             throw new JsonPointerError('Cannot write to a key.');
         }
@@ -358,7 +357,8 @@ export class JsonRelativePointer implements JsonConvertible {
         const remainderPointer = this.getRemainderPointer();
 
         if (!remainderPointer.isRoot()) {
-            return remainderPointer.unset(stack[stack.length - 1][1]);
+            // Given V = typeof value, and typeof value ⊆ ReferencedValue<T> → ReferencedValue<K> ⊆ ReferencedValue<T>
+            return remainderPointer.unset(stack[stack.length - 1][1]) as ReferencedValue<T>;
         }
 
         if (stack.length < 2) {
@@ -366,9 +366,10 @@ export class JsonRelativePointer implements JsonConvertible {
         }
 
         const segment = stack[stack.length - 1][0]!;
-        const structure = stack[stack.length - 2][1];
+        const parent = stack[stack.length - 2][1];
 
-        return JsonPointer.from([segment]).unset(structure);
+        // Given V = typeof value, and typeof value ⊆ ReferencedValue<T> → ReferencedValue<K> ⊆ ReferencedValue<T>
+        return JsonPointer.from([segment]).unset(parent) as ReferencedValue<T>;
     }
 
     /**

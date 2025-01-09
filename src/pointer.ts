@@ -33,12 +33,20 @@ export type ReferencedValue<T> = NestedValue<T>;
 type NestedValue<T, U = never> = T | (
     T extends object
         ? T extends U
-            ? never
+            ? NestedValue<Diff<T, U>, U>
             : T extends Array<infer I>
                 ? NestedValue<I, U | T>
-                : T[keyof T] | NestedValue<T[keyof T], U | T>
+                : NestedValue<T[keyof T], U | T>
         : never
     );
+
+type Diff<T extends object, M> = M extends infer U
+    ? T extends U
+        ? Exclude<keyof T, keyof U> extends never
+            ? never
+            : Pick<T, Exclude<keyof T, keyof U>>
+        : never
+    : never;
 
 /**
  * An error indicating a problem related to JSON pointer operations.
