@@ -271,7 +271,8 @@ export class JsonRelativePointer implements JsonConvertible {
             return segment;
         }
 
-        return this.getRemainderPointer().get(value as T);
+        // Given V = typeof value, and typeof value ⊆ ReferencedValue<T> → ReferencedValue<K> ⊆ ReferencedValue<T>
+        return this.getRemainderPointer().get(value) as ReferencedValue<T>;
     }
 
     /**
