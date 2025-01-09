@@ -1,4 +1,4 @@
-import {JsonConvertible, JsonStructure, JsonValue} from '@croct/json';
+import {JsonConvertible, JsonStructure} from '@croct/json';
 import {
     JsonPointer,
     JsonPointerSegments,
@@ -8,6 +8,8 @@ import {
     JsonPointerLike,
     Entry,
     InvalidReferenceError,
+    ReferencedValue,
+    RootValue,
 } from './pointer';
 
 /**
@@ -245,10 +247,10 @@ export class JsonRelativePointer implements JsonConvertible {
     /**
      * Returns the value at the referenced location.
      *
-     * @param {JsonValue} root The value to read from.
+     * @param {RootValue} root The value to read from.
      * @param {JsonPointer} pointer The base pointer to resolve the current pointer against.
      *
-     * @returns {JsonValue} The value at the referenced location.
+     * @returns {ReferencedValue|JsonPointerSegment} The value at the referenced location.
      *
      * @throws {InvalidReferenceError} If a numeric segment references a non-array value.
      * @throws {InvalidReferenceError} If a string segment references an array value.
@@ -256,7 +258,7 @@ export class JsonRelativePointer implements JsonConvertible {
      * @throws {InvalidReferenceError} If there is no value at any level of the pointer.
      * @throws {InvalidReferenceError} If the pointer references the key of the root value.
      */
-    public get(root: JsonValue, pointer = JsonPointer.root()): JsonValue {
+    public get<T extends RootValue>(root: T, pointer = JsonPointer.root()): ReferencedValue<T>|JsonPointerSegment {
         const stack = this.getReferenceStack(root, pointer);
         const [segment, value] = stack[stack.length - 1];
 
@@ -268,7 +270,8 @@ export class JsonRelativePointer implements JsonConvertible {
             return segment;
         }
 
-        return this.getRemainderPointer().get(value);
+        // Given V = typeof value, and typeof value ⊆ ReferencedValue<T> → ReferencedValue<K> ⊆ ReferencedValue<T>
+        return this.getRemainderPointer().get(value) as ReferencedValue<T>;
     }
 
     /**
@@ -276,12 +279,12 @@ export class JsonRelativePointer implements JsonConvertible {
      *
      * This method gracefully handles missing values by returning `false`.
      *
-     * @param {JsonValue} root The value to check if the reference exists in.
+     * @param {RootValue} root The value to check if the reference exists in.
      * @param {JsonPointer} pointer The base pointer to resolve the current pointer against.
      *
-     * @returns {JsonValue} Returns `true` if the value exists, `false` otherwise.
+     * @returns {boolean} Returns `true` if the value exists, `false` otherwise.
      */
-    public has(root: JsonValue, pointer: JsonPointer = JsonPointer.root()): boolean {
+    public has(root: RootValue, pointer: JsonPointer = JsonPointer.root()): boolean {
         try {
             this.get(root, pointer);
         } catch {
@@ -294,8 +297,8 @@ export class JsonRelativePointer implements JsonConvertible {
     /**
      * Sets the value at the referenced location.
      *
-     * @param {JsonValue} root The value to write to.
-     * @param {JsonValue} value The value to set at the referenced location.
+     * @param {RootValue} root The value to write to.
+     * @param {unknown} value The value to set at the referenced location.
      * @param {JsonPointer} pointer The base pointer to resolve the current pointer against.
      *
      * @throws {InvalidReferenceError} If the pointer references the root of the structure.
@@ -306,7 +309,7 @@ export class JsonRelativePointer implements JsonConvertible {
      * @throws {InvalidReferenceError} If setting the value to an array would cause it to become
      * sparse.
      */
-    public set(root: JsonValue, value: JsonValue, pointer = JsonPointer.root()): void {
+    public set(root: RootValue, value: unknown, pointer = JsonPointer.root()): void {
         if (this.isKeyPointer()) {
             throw new JsonPointerError('Cannot write to a key.');
         }
@@ -337,7 +340,7 @@ export class JsonRelativePointer implements JsonConvertible {
      * is a no-op. Pointers referencing array elements remove the element while keeping
      * the array dense.
      *
-     * @param {JsonValue} root The value to write to.
+     * @param {RootValue} root The value to write to.
      * @param {JsonPointer} pointer The base pointer to resolve the current pointer against.
      *
      * @returns {JsonValue} The unset value, or `undefined` if the referenced location
@@ -345,7 +348,7 @@ export class JsonRelativePointer implements JsonConvertible {
      *
      * @throws {InvalidReferenceError} If the pointer references the root of the structure.
      */
-    public unset(root: JsonValue, pointer = JsonPointer.root()): JsonValue | undefined {
+    public unset<T extends RootValue>(root: T, pointer = JsonPointer.root()): ReferencedValue<T> | undefined {
         if (this.isKeyPointer()) {
             throw new JsonPointerError('Cannot write to a key.');
         }
@@ -354,7 +357,8 @@ export class JsonRelativePointer implements JsonConvertible {
         const remainderPointer = this.getRemainderPointer();
 
         if (!remainderPointer.isRoot()) {
-            return remainderPointer.unset(stack[stack.length - 1][1] as JsonStructure);
+            // Given V = typeof value, and typeof value ⊆ ReferencedValue<T> → ReferencedValue<K> ⊆ ReferencedValue<T>
+            return remainderPointer.unset(stack[stack.length - 1][1]) as ReferencedValue<T>;
         }
 
         if (stack.length < 2) {
@@ -362,28 +366,29 @@ export class JsonRelativePointer implements JsonConvertible {
         }
 
         const segment = stack[stack.length - 1][0]!;
-        const structure = stack[stack.length - 2][1] as JsonStructure;
+        const parent = stack[stack.length - 2][1];
 
-        return JsonPointer.from([segment]).unset(structure);
+        // Given V = typeof value, and typeof value ⊆ ReferencedValue<T> → ReferencedValue<K> ⊆ ReferencedValue<T>
+        return JsonPointer.from([segment]).unset(parent) as ReferencedValue<T>;
     }
 
     /**
      * Returns the stack of references to the value at the referenced location.
      *
-     * @param {JsonValue} root The value to read from.
+     * @param {RootValue} root The value to read from.
      * @param {JsonPointer} pointer The base pointer to resolve the current pointer against.
      *
-     * @returns {Entry[]} The list of entries in top-down order.
+     * @returns {Entry<ReferencedValue>[]} The list of entries in top-down order.
      *
      * @throws {InvalidReferenceError} If a numeric segment references a non-array value.
      * @throws {InvalidReferenceError} If a string segment references an array value.
      * @throws {InvalidReferenceError} If an array index is out of bounds.
      * @throws {InvalidReferenceError} If there is no value at any level of the pointer.
      */
-    private getReferenceStack(root: JsonValue, pointer: JsonPointer): Entry[] {
+    private getReferenceStack<T extends RootValue>(root: T, pointer: JsonPointer): Array<Entry<ReferencedValue<T>>> {
         const iterator = pointer.traverse(root);
         let current = iterator.next();
-        const stack: Entry[] = [];
+        const stack: Array<Entry<ReferencedValue<T>>> = [];
 
         while (current.done === false) {
             stack.push(current.value);
@@ -436,7 +441,7 @@ export class JsonRelativePointer implements JsonConvertible {
      *
      * @returns {boolean} `true` if the pointers are logically equal, `false` otherwise.
      */
-    public equals(other: any): other is this {
+    public equals(other: any): other is JsonRelativePointer {
         if (this === other) {
             return true;
         }

@@ -6,6 +6,7 @@ import {
     JsonPointerError,
     JsonPointerLike,
     JsonPointerSegments,
+    RootValue,
 } from '../src';
 import {JsonRelativePointer, JsonRelativePointerLike} from '../src/relativePointer';
 
@@ -451,7 +452,7 @@ describe('A JSON Relative Pointer', () => {
     )(
         'should get value from %o starting from %s with pointer %s resulting in %s',
         (
-            root: JsonValue,
+            root: RootValue,
             basePointer: JsonPointer,
             relativePointer: JsonRelativePointer,
             result: JsonValue,
@@ -945,7 +946,7 @@ describe('A JSON Relative Pointer', () => {
     )(
         'should unset from %o at %s %s resulting in %o',
         (
-            root: JsonValue,
+            root: RootValue,
             basePointer: JsonPointer,
             relativePointer: JsonRelativePointer,
             result: JsonValue,
@@ -984,7 +985,7 @@ describe('A JSON Relative Pointer', () => {
     )(
         'should fail to unset from %o at %s %s because %S',
         (
-            root: JsonValue,
+            root: RootValue,
             basePointer: JsonPointer,
             relativePointer: JsonRelativePointer,
             error: string,
