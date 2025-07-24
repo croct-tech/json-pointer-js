@@ -10,9 +10,9 @@
 <p align="center">
     <a href="https://www.npmjs.com/package/@croct/json-pointer"><img alt="Version" src="https://img.shields.io/npm/v/@croct/json-pointer"/></a>
     <a href="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml"><img alt="Build" src="https://github.com/croct-tech/json-pointer-js/actions/workflows/validate-branch.yaml/badge.svg" /></a>
-    <a href="https://codeclimate.com/repos/6224bc798bc258016500056f/test_coverage"><img src="https://api.codeclimate.com/v1/badges/692b087d6472a80bb509/test_coverage" /></a>
-    <a href="https://codeclimate.com/repos/6224bc798bc258016500056f/maintainability"><img src="https://api.codeclimate.com/v1/badges/692b087d6472a80bb509/maintainability" /></a>
-    <br />
+    <a href="https://qlty.sh/gh/croct-tech/projects/json-pointer-js"><img src="https://qlty.sh/badges/6bc1a76f-e1e9-446e-96be-def10ef5b973/coverage.svg" alt="Code Coverage" /></a>
+<a href="https://qlty.sh/gh/croct-tech/projects/json-pointer-js"><img src="https://qlty.sh/badges/6bc1a76f-e1e9-446e-96be-def10ef5b973/maintainability.svg" alt="Maintainability" /></a>
+<br />
     <br />
     <a href="https://github.com/croct-tech/json-pointer-js/releases">📦Releases</a>
     ·
