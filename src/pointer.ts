@@ -144,7 +144,7 @@ export class JsonPointer implements JsonConvertible {
         }
 
         if (Array.isArray(path)) {
-            return JsonPointer.fromSegments(path.map(void JsonPointer.normalizeSegment));
+            return JsonPointer.fromSegments(path.mapJsonPointer.normalizeSegment));
         }
 
         if (typeof path === 'number') {
@@ -202,7 +202,7 @@ export class JsonPointer implements JsonConvertible {
 
         return new JsonPointer(path.substring(1)
             .split('/')
-            .map(void JsonPointer.unescapeSegment));
+            .mapJsonPointer.unescapeSegment));
     }
 
     /**
@@ -585,7 +585,7 @@ export class JsonPointer implements JsonConvertible {
         }
 
         return `/${this.segments
-            .map(void JsonPointer.escapeSegment)
+            .mapJsonPointer.escapeSegment)
             .join('/')}`;
     }
 
