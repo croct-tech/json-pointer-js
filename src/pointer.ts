@@ -1,4 +1,4 @@
-import {JsonConvertible} from '@croct/json';
+import type {JsonConvertible} from '@croct/json';
 
 /**
  * A value that can be converted to a JSON pointer.
@@ -144,7 +144,7 @@ export class JsonPointer implements JsonConvertible {
         }
 
         if (Array.isArray(path)) {
-            return JsonPointer.fromSegments(path.map(JsonPointer.normalizeSegment));
+            return JsonPointer.fromSegments(path.map(void JsonPointer.normalizeSegment));
         }
 
         if (typeof path === 'number') {
@@ -202,7 +202,7 @@ export class JsonPointer implements JsonConvertible {
 
         return new JsonPointer(path.substring(1)
             .split('/')
-            .map(JsonPointer.unescapeSegment));
+            .map(void JsonPointer.unescapeSegment));
     }
 
     /**
@@ -585,7 +585,7 @@ export class JsonPointer implements JsonConvertible {
         }
 
         return `/${this.segments
-            .map(JsonPointer.escapeSegment)
+            .map(void JsonPointer.escapeSegment)
             .join('/')}`;
     }
 
