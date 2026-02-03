@@ -596,7 +596,7 @@ export class JsonPointer implements JsonConvertible {
      *
      * @returns {string} The normalized segment.
      */
-    private static normalizeSegment(segment: string): JsonPointerSegment {
+    private static normalizeSegment(this: void, segment: string): JsonPointerSegment {
         if (/^\d+$/.test(segment)) {
             return Number.parseInt(segment, 10);
         }
@@ -609,7 +609,7 @@ export class JsonPointer implements JsonConvertible {
      *
      * @param segment The escaped segment to convert into its normalized form.
      */
-    private static unescapeSegment(segment: string): JsonPointerSegment {
+    private static unescapeSegment(this: void, segment: string): JsonPointerSegment {
         const normalizedSegment = JsonPointer.normalizeSegment(segment);
 
         if (typeof normalizedSegment === 'number') {
@@ -632,7 +632,7 @@ export class JsonPointer implements JsonConvertible {
      *
      * @param segment The escaped segment to convert into its normalized form.
      */
-    private static escapeSegment(segment: JsonPointerSegment): string {
+    private static escapeSegment(this: void, segment: JsonPointerSegment): string {
         if (typeof segment === 'number') {
             return `${segment}`;
         }
