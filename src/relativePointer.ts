@@ -1,16 +1,13 @@
-import {JsonConvertible, JsonStructure} from '@croct/json';
-import {
-    JsonPointer,
+import type {JsonConvertible, JsonStructure} from '@croct/json';
+import type {
     JsonPointerSegments,
-    InvalidSyntaxError,
     JsonPointerSegment,
-    JsonPointerError,
     JsonPointerLike,
     Entry,
-    InvalidReferenceError,
     ReferencedValue,
     RootValue,
 } from './pointer';
+import {JsonPointer, InvalidSyntaxError, JsonPointerError, InvalidReferenceError} from './pointer';
 
 /**
  * A value that can be converted to a relative JSON pointer.
@@ -258,7 +255,7 @@ export class JsonRelativePointer implements JsonConvertible {
      * @throws {InvalidReferenceError} If there is no value at any level of the pointer.
      * @throws {InvalidReferenceError} If the pointer references the key of the root value.
      */
-    public get<T extends RootValue>(root: T, pointer = JsonPointer.root()): ReferencedValue<T>|JsonPointerSegment {
+    public get<T extends RootValue>(root: T, pointer = JsonPointer.root()): ReferencedValue<T> | JsonPointerSegment {
         const stack = this.getReferenceStack(root, pointer);
         const [segment, value] = stack[stack.length - 1];
 
