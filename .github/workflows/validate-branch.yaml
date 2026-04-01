@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   validations:
-    uses: croct-tech/github-workflows/.github/workflows/general/javascript-validations.yml@unify-workflows
+    uses: croct-tech/github-workflows/.github/workflows/javascript-validation.yml@unify-workflows
     with:
       node-version: '22'
       run-security: true
