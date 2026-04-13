@@ -17,8 +17,6 @@ concurrency:
 
 jobs:
   validations:
-    uses: croct-tech/renovate-public-presets/.github/workflows/javascript-validations.yml@unify-workflows
-    with:
-      run-security: true
+    uses: croct-tech/shared-public-configs/.github/workflows/javascript-validations.yml@master
     secrets:
       GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
