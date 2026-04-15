@@ -1,4 +1,4 @@
-name: Validations
+name: Validate branch
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validations:
+  validate:
     uses: croct-tech/shared-public-configs/.github/workflows/javascript-validations.yml@master
     secrets:
       GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
