@@ -13,9 +13,7 @@ jobs:
         cp package.json README.md build/ &&
         cd build &&
         tmp=$(mktemp) &&
-        jq --arg version "$GITHUB_REF_NAME" \
-          '.version = $version' \
-          package.json > "$tmp" &&
+        jq --arg version "$GITHUB_REF_NAME" '.version = $version' package.json > "$tmp" &&
         mv "$tmp" package.json
     secrets:
       NPM_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
